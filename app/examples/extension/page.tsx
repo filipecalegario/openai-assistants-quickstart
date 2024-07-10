@@ -123,7 +123,6 @@ const Home = () => {
         padding={5}
         display={resumoVisible ? "block" : "none"}
       >
-        <Box>Resumo: {resumo}</Box>
         <Textarea placeholder="Adicione aqui o tema para o projeto" value={resumo} onChange={(e) => setResumo(e.target.value)}/>
         <Button colorScheme="blue">Gerar Justificativa</Button>
       </Stack>
