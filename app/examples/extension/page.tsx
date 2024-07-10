@@ -6,17 +6,26 @@ import { AssistantStream } from "openai/lib/AssistantStream";
 // @ts-expect-error - no types for this yet
 import { AssistantStreamEvent } from "openai/resources/beta/assistants/assistants";
 
-import { ChakraProvider, Stack } from "@chakra-ui/react";
+import { Box, ChakraProvider, Stack } from "@chakra-ui/react";
 import { Input } from "@chakra-ui/react";
 import { Button, ButtonGroup } from "@chakra-ui/react";
 import { Textarea } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 
+type MessageProps = {
+  role: "user" | "assistant";
+  text: string;
+};
+
 const Home = () => {
   const [resumoVisible, setResumoVisible] = useState(false);
+  const [tema, setTema] = useState("");
   const [threadId, setThreadId] = useState("");
+  const [lastMessage, setLastMessage] = useState<MessageProps>({ role: "user", text: "" });
+  const [resumo, setResumo] = useState("");
 
   const handleResumoClick = () => {
+    sendMessage(tema);
     setResumoVisible(true);
   };
 
@@ -48,16 +57,26 @@ const Home = () => {
 
   // textCreated - create new assistant message
   const handleTextCreated = () => {
-    appendMessage("assistant", "");
+    console.log("handleTextCreated");
+    //appendMessage("assistant", "");
+    setLastMessage({role:"assistant", text:""});
+    setResumo("");
   };
 
   // textDelta - append text to last assistant message
   const handleTextDelta = (delta) => {
+    console.log("handleTextDelta: " + resumo + delta.value);
     if (delta.value != null) {
-      appendToLastMessage(delta.value);
+      // appendToLastMessage(delta.value);
+      setLastMessage((prevLastMessage) => ({
+        ...prevLastMessage,
+        text: prevLastMessage.text + delta.value,
+      }));
+      setResumo((prevResumo) => prevResumo + delta.value);
     }
     if (delta.annotations != null) {
-      annotateLastMessage(delta.annotations);
+      //annotateLastMessage(delta.annotations);
+      console.log("annotations %o", delta.annotations);
     }
   };
 
@@ -84,12 +103,15 @@ const Home = () => {
       //   handleRequiresAction(event);
       if (event.event === "thread.run.completed") handleRunCompleted();
     });
+  
+
   };
 
   return (
     <ChakraProvider>
       <Stack spacing={4} direction="column" align="left" padding={10}>
-        <Input placeholder="Adicione aqui o tema para o projeto" />
+      
+        <Input placeholder="Adicione aqui o tema para o projeto" value={tema} onChange={(e) => setTema(e.target.value)}/>
         <Button colorScheme="blue" onClick={handleResumoClick}>
           Gerar Resumo
         </Button>
@@ -101,7 +123,8 @@ const Home = () => {
         padding={5}
         display={resumoVisible ? "block" : "none"}
       >
-        <Textarea placeholder="Adicione aqui o tema para o projeto" />
+        <Box>Resumo: {resumo}</Box>
+        <Textarea placeholder="Adicione aqui o tema para o projeto" value={resumo} onChange={(e) => setResumo(e.target.value)}/>
         <Button colorScheme="blue">Gerar Justificativa</Button>
       </Stack>
     </ChakraProvider>
